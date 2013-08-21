@@ -1,0 +1,14 @@
+# Working Directory
+work/
+
+# External (contains kiva)
+ext/
+
+# Log
+log/
+
+# Compiled Python
+*.pyc
+
+# Gedit Backups
+*~
