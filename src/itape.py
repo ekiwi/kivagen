@@ -47,12 +47,12 @@ class ITapeFile():
 					else:
 						places = 0
 					if 'e' in number:
-						format = '{:.%se}' % places
+						format = '{0:.%se}' % places
 					else:
-						format = '{:.%sf}' % places
+						format = '{0:.%sf}' % places
 					number = float(number)
 				else:
-					format = '{:d}'
+					format = '{0:d}'
 					number = int(number)
 				self.values.append([number, comment, format])
 				# number_str_new = format.format(number).replace('+', '')

@@ -194,7 +194,7 @@ class KivaRunner:
 				data = file.readlines()
 			# change line
 			line = "'tempi',     "
-			line += '{:.1f}'.format(self.compare_values[ii][0]) + '\n'
+			line += '{0:.1f}'.format(self.compare_values[ii][0]) + '\n'
 			data[230 - 1] = line
 			# write data back
 			with open(f, 'w') as file:
