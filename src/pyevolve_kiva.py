@@ -3,6 +3,9 @@ from pyevolve import GSimpleGA
 from pyevolve import Mutators
 from pyevolve import Initializators
 from pyevolve import GAllele
+from pyevolve import Consts
+from pyevolve import DBAdapters
+from pyevolve import Selectors
 from kiva_runner import KivaRunner
 from logger.logger import Logger
 
@@ -16,8 +19,6 @@ def G1DListInitializatorAlleleKiva(genome, **args):
 	genome.genomeList = runner.getParameters()
 	log.debug("Initialized Allele List with: %s" % runner.getParameters())
 
-# This function is the evaluation function, we want
-# to give high score to more zero'ed chromosomes
 def eval_func(chromosome):
 	global runner
 	params = []
@@ -81,13 +82,22 @@ def run_main():
 	ga = GSimpleGA.GSimpleGA(genome)
 	ga.setGenerations(10)
 	ga.setPopulationSize(20)
+	ga.setMinimax(Consts.minimaxType["minimize"])
+	# ga.setCrossoverRate(1.0)
+	ga.setMutationRate(0.1)
+	ga.selector.set(Selectors.GRouletteWheel)
+
+	sqlite_adapter = DBAdapters.DBSQLite(identify="ex1", resetDB=True)
+	ga.setDBAdapter(sqlite_adapter)
 
 	# Do the evolution, with stats dump
 	# frequency of 10 generations
 	ga.evolve(freq_stats=1)
 
 	# Best individual
-	# print ga.bestIndividual()
+	best = ga.bestIndividual()
+	print "\nBest individual score: %.2f" % (best.getRawScore(),)
+	print best
 
 
 if __name__ == "__main__":

@@ -12,3 +12,6 @@ log/
 
 # Gedit Backups
 *~
+
+# Pyevolve Database
+pyevolve.db

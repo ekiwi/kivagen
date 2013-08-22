@@ -333,7 +333,6 @@ class KivaRunner:
 		score = 0.0
 		for value in self.results:
 			score += abs(value[0] - value[1])
-		score = 1000 / score
 		return score
 
 if __name__ == "__main__":
