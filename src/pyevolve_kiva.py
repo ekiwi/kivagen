@@ -24,7 +24,8 @@ def eval_func(chromosome):
 	for value in chromosome:
 		params.append(value)
 	log.debug("Testing params: %s" % params)
-	runner.run(60)
+	runner.setParameters(params)
+	runner.run(60 * 5, 5)	# 5 min timeout, 5 restarts max
 	score = runner.getFitness()
 	log.debug("Fitness: %s" % score)
 	return score
