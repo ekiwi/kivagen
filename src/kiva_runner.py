@@ -234,7 +234,34 @@ class KivaRunner:
 			self.log.debug("Delta: %s \tabs: %s \trelative: %s%%" % (delta, delta_abs, delta_rel))
 			self.results.append([delay, compare[1]])
 
-	def run(self, time_out=120):
+	def _restart(self, p, max_tries):
+		"""
+		Restarts process if number of max_tries has not been passed.
+		"""
+		if p[5] >= max_tries:
+			self.log.error("kiva in '%s' failed on the %s. try." % (p[1], p[5]))
+			p[2] = False
+			p[3].close() # close log file
+			p[4].close() # close error file
+			return False
+		else:
+			# clean up runXX dir
+			for node in os.listdir(p[1]):
+				if node not in self.kiva_parameter_files:
+					os.unlink(os.path.join(p[1], node))
+			# increment ties
+			p[5] = p[5] + 1
+			# print message to log
+			msg = "\n%s. Try -------------------------------------------\n" % p[5]
+			p[3].write(msg)
+			p[4].write(msg)
+			# restart p
+			kiva = os.path.abspath(os.path.join(self.kiva_path, self.kiva_name))
+			p[0] = subprocess.Popen(kiva, cwd=p[1], stdout=p[3], stderr=p[4])
+			self.log.warn("kiva in '%s' restarted for it's %s. try." % (p[1], p[5]))
+			return True
+
+	def run(self, time_out=120, max_tries=3):
 		"""
 		Executes kiva with current parameter set.
 		Once for every compare_value.
@@ -252,7 +279,8 @@ class KivaRunner:
 			error_file = open(error, 'w')
 			d = os.path.join(self.working_dir, 'run' + str(ii))
 			p = subprocess.Popen(kiva, cwd=d, stdout=log_file, stderr=error_file)
-			processes.append([p, d, True, log_file, error_file])
+			# process, path, running, log_file, error_file, tries
+			processes.append([p, d, True, log_file, error_file, 1])
 			self.log.debug("kiva in '%s' spawned." % d)
 		# Check for all kiva processes to terminate
 		# TODO: add timeout
@@ -264,9 +292,14 @@ class KivaRunner:
 				if p[2]:
 					if p[0].poll() == 0:
 						self.log.debug("kiva in '%s' terminated." % p[1])
-						p[2] = False
-						p[3].close() # close log file
-						p[4].close() # close error file
+						# Check if output file was generated
+						if os.path.isfile(os.path.join(p[1], 'T_ign.dat')):
+							p[2] = False
+							p[3].close() # close log file
+							p[4].close() # close error file
+						else:	# if there is no T_ign.dat
+							self._restart(p, max_tries)	# restart
+							start_time = time.time()	# reset timeout
 					else:
 						all_finished = False
 			# is time up?
@@ -280,7 +313,7 @@ class KivaRunner:
 						self.log.warn("kiva in '%s' killed!" % p[1])
 				all_finished = True
 			# do not use up all CPU time
-			time.sleep(1)
+			time.sleep(0.5)
 		# Collect Results
 		self._collectIgnitionDelay()
 		return True
