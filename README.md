@@ -15,6 +15,10 @@ Also you need an `ext` directory containing the following files:
 
 ## License
 
-All files in this repository are licensed under a permissive MIT License.
+All files in this repository except for the files in `src/logger/` are licensed
+under a permissive MIT License.
 See the [LICENSE](https://github.com/ekiwi/kivagen/blob/master/LICENSE)
 file that came with the source code.
+
+The files in `src/logger/` are licensed under a 3 Clause BSD style license.
+Consult their license header for further information.
