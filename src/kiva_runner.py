@@ -62,18 +62,22 @@ class KivaRunner:
 		self.compare_values = self._readCompareFile(self.compare_file)
 		# self.log.debug("self.compare_values = %s" % self.compare_values)
 		# Load Parameters
-		self.loadParameters()
+		self._loadParameters()
 		# self.log.debug("self.param_list = %s" % self.param_list)
 
 # --------------- Parameters --------------------------------------------------
-	def loadParameters(self):
+	def _loadParameters(self):
 		"""
 		Loads the start parameters from the itape files.
+		Also creates a lookup table to match parameter list index to
+		itape file and value id
 		"""
 		self.param_list = []
+		self.param_lookup = {}
 		# relaod parameters from file
 		for itape in self.itapes.values():
 			itape._open(itape.name)
+		param_index = 0
 		for param in self.parameter_format:
 			# if file has not been loaded before
 			if param[0] not in self.itapes:
@@ -93,6 +97,9 @@ class KivaRunner:
 			else:
 				value = self.itapes[param[0]].getValue(ii)
 				self.param_list.append(self._checkParameter(value, param))
+				# remember itap file and value id
+				self.param_lookup[param_index] = [self.itapes[param[0]], ii]
+			param_index = param_index + 1
 		# now we should have collected all parameters
 		if len(self.param_list) != len(self.parameter_format):
 			sel.log.error("Only found %s elements. Expected %s!"
@@ -114,10 +121,11 @@ class KivaRunner:
 			sel.log.error("Parameter list needs to contain exactly %s elements. Not %s!"
 							% (len(self.parameter_format), len(parameters)))
 			return
-		# 2.) Check if parameters are correct
+		# 2.) Check if parameters are correct and put them into the itape files
 		for ii in range(0, len(parameters)):
 			if self._checkParameter(parameters[ii], self.parameter_format[ii]) == None:
 				return
+			self.param_lookup[ii][0].setValue(self.param_lookup[ii][1], parameters[ii])
 		# 3.) Replace parameter list
 		self.param_list = parameters
 
@@ -261,7 +269,7 @@ class KivaRunner:
 			self.log.warn("kiva in '%s' restarted for it's %s. try." % (p[1], p[5]))
 			return True
 
-	def run(self, time_out=120, max_tries=3):
+	def run(self, time_out=120, max_tries=5):
 		"""
 		Executes kiva with current parameter set.
 		Once for every compare_value.
@@ -283,7 +291,6 @@ class KivaRunner:
 			processes.append([p, d, True, log_file, error_file, 1])
 			self.log.debug("kiva in '%s' spawned." % d)
 		# Check for all kiva processes to terminate
-		# TODO: add timeout
 		all_finished = False
 		start_time = time.time()
 		while not all_finished:
@@ -340,4 +347,7 @@ if __name__ == "__main__":
 	l.debug("Default Parameter Set: %s" % runner.getParameters())
 	runner.run(10)
 	l.debug("Fitness: %s" % runner.getFitness())
-
+	runner.setParameters([0.01])
+	l.debug("New Parameter Set: %s" % runner.getParameters())
+	runner.run(10)
+	l.debug("Fitness: %s" % runner.getFitness())

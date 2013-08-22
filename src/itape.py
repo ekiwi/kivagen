@@ -78,8 +78,12 @@ class ITapeFile():
 
 	def setValue(self, id, value):
 		if isinstance(self.values[id][0], int):
+			self.log.debug("%s: replace %s with %s"
+							% (self.values[id][1], self.values[id][0], value))
 			self.values[id][0] = int(value)
 		elif isinstance(self.values[id][0], float):
+			self.log.debug("%s: replace %s with %s"
+							% (self.values[id][1], self.values[id][0], value))
 			self.values[id][0] = float(value)
 		else:
 			self.log.warn("Could not write %s to self.values[%s)." % (value, id))
